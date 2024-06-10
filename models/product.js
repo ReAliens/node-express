@@ -1,5 +1,5 @@
 const { ObjectId } = require("mongodb");
-
+const mongodb = require("mongodb");
 const getDb = require("../utils/db").getDb;
 
 class Product {
@@ -8,25 +8,27 @@ class Product {
     this.price = price;
     this.description = description;
     this.imageUrl = imageUrl;
-    this._id = id;
+    this._id = id ? ObjectId.createFromHexString(id) : null;
   }
+
   save() {
     const db = getDb();
-    let dbObj;
-
+    let dbOp;
     if (this._id) {
-      dbObj = db
+      // Update the product
+      dbOp = db
         .collection("products")
-        .updateOne(
-          { _id: ObjectId.createFromHexString(this._id) },
-          { $set: this }
-        );
+        .updateOne({ _id: this._id }, { $set: this });
     } else {
-      dbObj = db.collection("products").insertOne(this);
+      dbOp = db.collection("products").insertOne(this);
     }
-    return dbObj
-      .then((res) => console.log(res))
-      .catch((err) => console.log(err));
+    return dbOp
+      .then((result) => {
+        console.log(result);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }
 
   static fetchAll() {
@@ -36,22 +38,34 @@ class Product {
       .find()
       .toArray()
       .then((products) => {
+        console.log(products);
         return products;
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log(err);
+      });
   }
 
   static findById(prodId) {
     const db = getDb();
     return db
       .collection("products")
-      .find({ _id: ObjectId.createFromHexString(prodId) })
+      .find({ _id: new mongodb.ObjectId(prodId) })
       .next()
       .then((product) => {
         console.log(product);
         return product;
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  static deleteById(prodId) {
+    const db = getDb();
+    return db
+      .collection("products")
+      .deleteOne({ _id: ObjectId.createFromHexString(prodId) });
   }
 }
 
