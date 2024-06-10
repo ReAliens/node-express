@@ -1,26 +1,58 @@
-const { DataTypes } = require("sequelize");
-const sequlize = require("../utils/db");
+const { ObjectId } = require("mongodb");
 
-const Product = sequlize.define("product", {
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    allowNull: false,
-    primaryKey: true,
-  },
-  title: DataTypes.STRING,
-  price: {
-    type: DataTypes.DOUBLE,
-    allowNull: false,
-  },
-  description: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  imageUrl: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-});
+const getDb = require("../utils/db").getDb;
+
+class Product {
+  constructor(title, price, description, imageUrl, id) {
+    this.title = title;
+    this.price = price;
+    this.description = description;
+    this.imageUrl = imageUrl;
+    this._id = id;
+  }
+  save() {
+    const db = getDb();
+    let dbObj;
+
+    if (this._id) {
+      dbObj = db
+        .collection("products")
+        .updateOne(
+          { _id: ObjectId.createFromHexString(this._id) },
+          { $set: this }
+        );
+    } else {
+      dbObj = db.collection("products").insertOne(this);
+    }
+    return dbObj
+      .then((res) => console.log(res))
+      .catch((err) => console.log(err));
+  }
+
+  static fetchAll() {
+    const db = getDb();
+    return db
+      .collection("products")
+      .find()
+      .toArray()
+      .then((products) => {
+        return products;
+      })
+      .catch((err) => console.log(err));
+  }
+
+  static findById(prodId) {
+    const db = getDb();
+    return db
+      .collection("products")
+      .find({ _id: ObjectId.createFromHexString(prodId) })
+      .next()
+      .then((product) => {
+        console.log(product);
+        return product;
+      })
+      .catch((err) => console.log(err));
+  }
+}
 
 module.exports = Product;
