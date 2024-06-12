@@ -4,7 +4,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 
 const errorController = require("./controllers/error");
-const mongoConnect = require("./utils/db").mongoConnect;
+const mongoConnect = require("./util/database").mongoConnect;
 const User = require("./models/user");
 
 const app = express();
@@ -35,3 +35,5 @@ app.use(errorController.get404);
 mongoConnect(() => {
   app.listen(3000);
 });
+
+//666838ed2a9e8977b8acc4ff
